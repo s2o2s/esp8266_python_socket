@@ -7,10 +7,10 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 
-const char* ssid = "ten wifi";
-const char* password = "mat khau wifi";
+const char* ssid = "wifi";
+const char* password = "pass";
 const uint16_t port = 8080;
-const char * host = "192.168.0.50";
+const char * host = "dia chi ip";
 
 WiFiClient client_esp;
 void esp_connect()
