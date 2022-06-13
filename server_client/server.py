@@ -1,4 +1,3 @@
-
 import socket
 from time import sleep
 import threading
@@ -7,7 +6,6 @@ import datetime
 server = socket.socket()
 server.bind(('0.0.0.0', 8080))
 server.listen(10)
-
 
 temp = 0
 humi = 0
@@ -29,10 +27,12 @@ def Update_value(t,h):
 
 def Send_value(client,lst):
     sleep(0.1)
+    client.recv(16)
     client.sendall(str(len(lst)).encode())
     for i in range(0,len(lst)):
         for j in range(0,3):
-            sleep(0.01)
+            client.recv(16)
+            sleep(0.1)
             client.sendall(str(lst[i][j]).encode())
 
 
@@ -48,7 +48,7 @@ def Handle_Client_Esp(client_esp):
                 if content == b'esp8266':
                     content1 = client_esp.recv(128)
                     if content1 == b'-999':
-                        print("Lỗi đọc cảm biến")
+                        print("Err read sensor DHT11")
                     else:
                         #print(content1)
                         content1 = content1.decode()
@@ -56,8 +56,8 @@ def Handle_Client_Esp(client_esp):
                         temp = float(value[0])
                         humi = float(value[1])
             except Exception as e:
-                print(e)
-                print("Mất kết nối")
+                #print(e)
+                print("ESP8266 disconnect")
                 client_esp.close()
                 return
             Update_value(temp,humi)
@@ -80,14 +80,15 @@ def Handle_Client_User(client_user):
                     client_user.sendall(b'999')
                 else:
                     client_user.sendall(b'2')
-                    sleep(0.5)
+                    client_user.recv(16)
                     client_user.sendall(str(Arr_Temp_Humi_Time[len(Arr_Temp_Humi_Time)-1][0]).encode())
-                    sleep(0.05)
+                    client_user.recv(16)
                     client_user.sendall(str(Arr_Temp_Humi_Time[len(Arr_Temp_Humi_Time)-1][1]).encode())
-                    sleep(0.05)
+                    client_user.recv(16)
                     client_user.sendall(str(Arr_Temp_Humi_Time[len(Arr_Temp_Humi_Time)-1][2]).encode())
             except Exception as e:
-                print(e)
+                #print(e)
+                print('User disconnect')
                 client_user.close()
                 return
             sleep(1)
@@ -102,17 +103,16 @@ while True:
         type_client = client.recv(128)
         if type_client == b'ESP':
             Handle_Client_Esp(client)
+            print('ESP8266 connected')
+            print(addr)
         elif type_client == b'USER':
             Handle_Client_User(client)
+            print('User connected')
+            print(addr)
         else:
-            print('Từ chối kết nối')
+            print('Refuse connect')
             client.close()
 
     except Exception as e:
         print(e)
     sleep(1)
-
-
-
-
-
